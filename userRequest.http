@@ -1,0 +1,46 @@
+### User register
+POST http://localhost:4000/user-api/users
+Content-Type: application/json
+
+{
+    "firstName": "newUser",
+    "lastName": "newUser",
+    "email": "newuser@gmail.com",
+    "password": "newuser",
+    "profileImageUrl": "xyz.png"
+}
+
+### Common authentication/login
+POST http://localhost:4000/common-api/login
+Content-Type: application/json
+
+{
+    "email": "newuser@gmail.com",
+    "password": "newuser"
+}
+
+### Read all article by id
+GET http://localhost:4000/user-api/articles
+
+### Add a comment
+PUT http://localhost:4000/user-api/articles
+Content-Type: application/json
+
+{
+    "userId": "69ae8dbf6faf14af347f63f3",
+    "articleId": "69ae8d54950e84de4d5074bb",
+    "comment": "sorry its bad"
+}
+
+
+### Logout
+GET  http://localhost:4000/common-api/logout
+
+###Change password
+PUT http://localhost:4000/common-api/change-password
+Content-Type: application/json
+
+{
+    "currentPassword": "password",
+    "newPassword": "newPassword"
+}

@@ -1,5 +1,5 @@
 import exp from 'express'
-import { register, authenticate } from '../services/AuthService.js'
+import { register } from '../services/AuthService.js'
 import { verifyToken } from '../Middlewares/verifyToken.js'
 import { checkUser } from '../Middlewares/checkUser.js'
 import { ArticleModel } from '../models/ArticleModel.js'
@@ -20,37 +20,34 @@ userRoute.post('/users', async (req, res) =>{
 
 
 //Read all articles(protected)
-userRoute.get('/articles/:uid', verifyToken, checkUser, async(req, res) =>{
+userRoute.get('/articles', verifyToken("USER"), checkUser, async(req, res) =>{
     //middleware already checks for user
     let articles = await ArticleModel.find({isArticleActive: true})
 
     //send res
-    res.status(201).json({message: "Articles are", payload: articles})
+    res.status(200).json({message: "Articles are", payload: articles})
 })
 
 //Add comment to an article(protected)
-userRoute.put('/articles', verifyToken, checkUser, async (req,res) =>{
+userRoute.put('/articles', verifyToken('USER'), checkUser, async (req,res) =>{
     //get commentText and articleId from req body
-    let {articleId, comment: commentText} = req.body
+    let {userId, articleId, comment} = req.body
+
+    //check user(req.user)
+    if(String(userId) !== String(req.user.userId)){
+        return res.status(403).json({message: "User is Forbidden"})
+    }
 
     //find article
-    let article = await ArticleModel.findById(articleId)
-    if(!article){
-        return res.status(401).json({message: "Article not found"})
+    let articleWithComment = await ArticleModel.findByIdAndUpdate(articleId,
+        {$push: {comments: {user: userId, comment}}},
+        {new: true, runValidators: true}
+    )
+    //if article not found
+    if(!articleWithComment){
+        return res.status(404).json({message: "Article not found"})
     }
-
-    //create userCommentObj matching userCommentSchema
-    const userCommentObj = {
-        user: req.userId,    // userId from verifyToken middleware
-        comment: commentText   // comment text from request body
-    }
-
-    //add comment to comments array
-    article.comments.push(userCommentObj)
-
-    //save article with new comment
-    await article.save()
 
     //send res
-    res.status(200).json({message: "Commented successfully", payload: userCommentObj})
+    res.status(200).json({message: "Commented successfully", payload: articleWithComment})
 })

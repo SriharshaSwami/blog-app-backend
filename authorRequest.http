@@ -1,0 +1,64 @@
+### Author register
+POST http://localhost:4000/author-api/users
+Content-Type: application/json
+
+{
+    "firstName": "Shobu",
+    "lastName": "Sai ram",
+    "email": "shobu@gmail.com",
+    "password": "Shobu",
+    "profileImageUrl": "abc.png"
+}
+
+### Common authentication/login
+POST http://localhost:4000/common-api/login
+Content-Type: application/json
+
+{
+    "email": "shobu@gmail.com",
+    "password": "Shobu"
+}
+
+### Create article
+POST http://localhost:4000/author-api/articles
+Content-Type: application/json
+
+{
+    "title": "sample title 1",
+    "content": "sample content 1",
+    "category": "sample category 1"
+}
+
+### Read author's articles
+GET http://localhost:4000/author-api/articles/69896ec86319f1673e6f783f
+
+### Update/edit author's article
+PUT http://localhost:4000/author-api/articles
+Content-Type: application/json
+
+{
+    "title": "sample title 1 updated",
+    "content": "sample content 1",
+    "category": "sample category 1 updated",
+    "articleId": "69ae8d54950e84de4d5074bb"
+}
+
+### change status of article
+PATCH http://localhost:4000/author-api/articles/69ae8d54950e84de4d5074bb/status
+Content-Type: application/json
+
+{ 
+    "isArticleActive": true 
+}
+
+### Logout
+GET  http://localhost:4000/common-api/logout
+
+###Change password
+PUT http://localhost:4000/common-api/change-password
+Content-Type: application/json
+
+{
+    "currentPassword": "password",
+    "newPassword": "newPassword"
+}

@@ -1,5 +1,5 @@
 import exp from 'express'
-import { register, authenticate} from "../services/AuthService.js"
+import { register } from "../services/AuthService.js"
 import { UserTypeModel } from '../models/UserModel.js'
 import { ArticleModel } from '../models/ArticleModel.js'
 import { checkAuthor } from '../Middlewares/checkAuthor.js'
@@ -20,42 +20,31 @@ authorRoute.post('/users', async (req, res) =>{
     res.status(201).json({message: "Author created", payload: newUserObj})
 })
 
-// //Authenticate author(public)
-// authorRoute.post("/authenticate", async(req, res) => {
-//     //get user credentials obj from req body
-//     let userCred = req.body
-//     //call authenticate service
-//     let {token, user} = await authenticate(userCred)
-//     //save received token as HttpOnlyCookie
-//     res.cookie("token", token,{
-//         httpOnly: true,
-//         sameSite: "lax",
-//         secure: false
-//     })
-//     //send res
-//     res.status(201).json({message: "Login success", payload: user})
-// })
-
 // //Create article(protected)
-// authorRoute.post('/articles', verifyToken, checkAuthor, async (req, res) => {
-//     //get article from body
-//     let atricleObj = req.body
+authorRoute.post('/articles', verifyToken("AUTHOR"), checkAuthor, async (req, res) => {
+    //get article from body
+    let atricleObj = req.body
 
-//     //already middleware checks author
-//     let author = await UserTypeModel.findById(atricleObj.author)
+  // always bind article author to logged-in user
+  atricleObj.author = req.user.userId
 
-//     //create article documnet
-//     const articleDoc = new ArticleModel(atricleObj)
+    //author can only create article for own account
+    if (atricleObj.author != req.user.userId) {
+        return res.status(403).json({ message: "Forbidden" })
+    }
 
-//     //save
-//     let createdArticleDoc = await articleDoc.save()
+    //create article documnet
+    const articleDoc = new ArticleModel(atricleObj)
 
-//     //send res
-//     res.status(201).json({message: "article published successfully", payload: createdArticleDoc})
-// })
+    //save
+    let createdArticleDoc = await articleDoc.save()
+
+    //send res
+    res.status(201).json({message: "Article published successfully", payload: createdArticleDoc})
+})
 
 //Read articles of their own(protected)
-authorRoute.get('/articles/:authorId', verifyToken, checkAuthor, async(req, res) => {
+authorRoute.get('/articles/:authorId', verifyToken("AUTHOR"), checkAuthor, async(req, res) => {
     //get author id
     let authorId = req.params.authorId
 
@@ -70,14 +59,20 @@ authorRoute.get('/articles/:authorId', verifyToken, checkAuthor, async(req, res)
 })
 
 //Edit article(protected)
-authorRoute.put('/articles', verifyToken, checkAuthor, async(req, res) => {
-    //get modifiedArticle author from req
-    let {articleId, title, category, content, author} = req.body
+authorRoute.put('/articles', verifyToken("AUTHOR"), checkAuthor, async(req, res) => {
+    //get modifiedArticle from req
+  let {articleId, title, category, content} = req.body
+  const author = req.user.userId
 
     //find article with the id
     let articleOfDb = await ArticleModel.findOne({_id: articleId, author: author})
     if(!articleOfDb){
-        res.status(401).json({message: "No such article from this author"})
+    return res.status(404).json({message: "No such article from this author"})
+    }
+
+    //author can only modify their own articles
+  if (req.user.role === "AUTHOR" && articleOfDb.author.toString() !== req.user.userId) {
+      return res.status(403).json({message: "Forbidden"})
     }
 
     //update the article
@@ -88,19 +83,43 @@ authorRoute.put('/articles', verifyToken, checkAuthor, async(req, res) => {
     )
 
     //send res(updated article)
-    res.status(201).json({message: "Article edited", payload: updatedArticle})
+    res.status(200).json({message: "Article edited", payload: updatedArticle})
 })
 
-//Delete(soft delete) article(protected)
-authorRoute.put('/articles/delete', verifyToken, checkAuthor, async(req, res) =>{
-    let {author, articleId} = req.body
-    //find article with the articleId
-    let articleOfDb = await ArticleModel.findOne({_id: articleId, author: author})
-    if(!articleOfDb){
-        res.status(401).json({message: "No such article from this author"})
-    }
 
-    //make it inactive i.e soft delete
-    await ArticleModel.updateOne({_id: articleId}, {$set: {isArticleActive: false}})
-    res.status(201).json({message: "Article deleted"})
-})  
+//delete(soft delete) article(Protected route)
+authorRoute.patch("/articles/:id/status", verifyToken("AUTHOR"), async (req, res) => {
+  const { id } = req.params;
+  const { isArticleActive } = req.body;
+  // Find article
+  const article = await ArticleModel.findById(id); //.populate("author");
+  //console.log(article)
+  if (!article) {
+    return res.status(404).json({ message: "Article not found" });
+  }
+
+  //console.log(req.user.userId,article.author.toString())
+  // AUTHOR can only modify their own articles
+  if (req.user.role === "AUTHOR" && 
+    article.author.toString() !== req.user.userId) {
+    return res
+    .status(403)
+    .json({ message: "Forbidden. You can only modify your own articles" });
+  }
+  // Already in requested state
+  if (article.isArticleActive === isArticleActive) {
+    return res.status(400).json({
+      message: `Article is already ${isArticleActive ? "active" : "deleted"}`,
+    });
+  }
+
+  //update status
+  article.isArticleActive = isArticleActive;
+  await article.save();
+
+  //send res
+  res.status(200).json({
+    message: `Article ${isArticleActive ? "restored" : "deleted"} successfully`,
+    article,
+  });
+}); 

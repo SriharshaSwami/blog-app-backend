@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { Types } from "mongoose";
+
 //create user comment schema
 const userCommentSchema = new Schema({
     user: {

@@ -6,10 +6,17 @@ import { adminRoute } from './APIs/AdminAPI.js'
 import { authorRoute } from './APIs/AuthorAPI.js'
 import cookieParser from 'cookie-parser'
 import { commonRoute } from './APIs/CommonAPI.js'
+import cors from 'cors'
+
 config() //process.env
 
-//
+//creates express app
 export const app = exp()
+
+//ues cors middleware
+app.use(cors({
+    origin: ['http://localhost:5173']
+}))
 
 //add body parser middleware
 app.use(exp.json())
@@ -38,8 +45,12 @@ const connectDB = async () => {
         console.log("DB connection error", err.message)
     }
 }
-
 connectDB()
+
+//invalid path handling
+app.use((req,res,next) => {
+    res.json({message: `${req.url} is Invalid Path`})
+})
 
 app.post('/logout', (req,res) =>{
     //clear the cookie name 'token'
@@ -53,7 +64,38 @@ app.post('/logout', (req,res) =>{
     res.status(200).json({message: "Logged out successfully"})
 })
 
-//Default err handling middleware
+//err handling middleware
 app.use((err, req, res, next) => {
-    res.status(400).json({message: "Error", Reason: err.message})
-})
+  if (err.status) {
+    return res.status(err.status).json({
+      message: err.message,
+    });
+  }
+  // Mongoose validation error
+  if (err.name === "ValidationError") {
+    return res.status(400).json({
+      message: "Validation failed",
+      errors: err.errors,
+    });
+  }
+  // Invalid ObjectId
+  if (err.name === "CastError") {
+    return res.status(400).json({
+      message: "Invalid ID format",
+    });
+  }
+  // Duplicate key
+  if (err.code === 11000) {
+    return res.status(409).json({
+      message: "Email already exists",
+    });
+  }
+  if (err.name === "StrictModeError") {
+    return res.status(400).json({
+      message: err.message,
+    });
+  }
+  res.status(500).json({
+    message: "Internal Server Error",
+  });
+});

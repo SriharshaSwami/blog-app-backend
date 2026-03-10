@@ -1,7 +1,7 @@
 import { UserTypeModel } from "../models/UserModel.js"
 export const checkAuthor = async (req, res, next) => {
     //get author id
-    let authorId = req.params?.authorId || req.body?.author
+    let authorId = req.params?.authorId || req.body?.author || req.user?.userId
 
     //verify author
     let author = await UserTypeModel.findById(authorId)

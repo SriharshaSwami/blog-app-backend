@@ -34,8 +34,8 @@ adminRoute.put('/unblock',verifyToken, async (req, res) =>{
     if(!userInDb){
         return res.status(404).json({message: "User not found"})
     }
-    //update user to inactive
+    //update user to active
     await UserTypeModel.updateOne({email: userObj.userEmail},{$set: {isActive: true}})
     //send res
-    res.status(200).json({message: "User Unblocked"})
+    res.status(200).json({message: "User unblocked"})
 })

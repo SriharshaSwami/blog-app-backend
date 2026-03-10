@@ -19,8 +19,8 @@ commonRoute.post('/login', async (req, res) => {
         sameSite: "lax",
         secure: false
     })
-    //send res
-    res.status(200).json({message: "Login success"})
+    //send res with user object (including role)
+    res.status(200).json({message: "Login success", payload: user})
 })
 
 //logout

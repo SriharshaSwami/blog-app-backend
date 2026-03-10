@@ -7,6 +7,14 @@ config()
 //register user function
 export const register = async (userObj) =>{
 
+    // Return a client error for duplicate email instead of bubbling as a server error.
+    const existingUser = await UserTypeModel.findOne({ email: userObj.email })
+    if (existingUser) {
+        const err = Error("Email already registered")
+        err.status = 409
+        throw err
+    }
+
     //create object to validate
     const userDoc = new UserTypeModel(userObj)
 
