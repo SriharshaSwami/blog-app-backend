@@ -6,7 +6,12 @@ import { verifyToken } from '../Middlewares/verifyToken.js'
 export const adminRoute = exp.Router()
 
 
-//Read all articles(optional)
+//Read all users and authors
+adminRoute.get('/users', verifyToken('ADMIN'), async (req, res) => {
+    //find all users except admin
+    let users = await UserTypeModel.find({ role: { $in: ['USER', 'AUTHOR'] } }, '-password')
+    res.status(200).json({ message: "Users found", payload: users })
+})
 
 //Block user route
 adminRoute.put('/block',verifyToken('ADMIN'), async (req, res) =>{

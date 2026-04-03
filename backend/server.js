@@ -49,7 +49,7 @@ connectDB()
 
 //invalid path handling
 app.use((req, res, next) => {
-  res.json({ message: `${req.url} is Invalid Path` })
+  res.status(404).json({ message: `${req.url} is Invalid Path` })
 })
 
 app.post('/logout', (req, res) => {

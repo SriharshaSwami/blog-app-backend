@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { cardClass, pageTitleClass, bodyText, primaryBtn, ghostBtn } from '../styles/common'
 import { useAuth } from '../store/authStore'
@@ -8,8 +8,16 @@ function UserProfile() {
   const loading = useAuth(state => state.loading)
   const currentUser = useAuth(state => state.currentUser)
   const [articles, setArticles] = useState([])
-  const [showArticles, setShowArticles] = useState(false)
+  const [showArticles, setShowArticles] = useState(() => {
+    return sessionStorage.getItem("userShowArticles") === "true"
+  })
   const [fetchError, setFetchError] = useState(null)
+
+  useEffect(() => {
+    if (showArticles && articles.length === 0) {
+      readAllArticles()
+    }
+  }, [])
 
   const readAllArticles = async () => {
     setFetchError(null)
@@ -17,8 +25,18 @@ function UserProfile() {
       let res = await axios.get('http://localhost:4000/user-api/articles', { withCredentials: true })
       setArticles(res.data.payload || [])
       setShowArticles(true)
+      sessionStorage.setItem("userShowArticles", "true")
     } catch (err) {
       setFetchError(err.response?.data?.error || 'Failed to fetch articles')
+    }
+  }
+
+  const toggleShowArticles = () => {
+    if (showArticles) {
+      setShowArticles(false)
+      sessionStorage.setItem("userShowArticles", "false")
+    } else {
+      readAllArticles()
     }
   }
 
@@ -34,8 +52,8 @@ function UserProfile() {
           />
         )}
         <p className={bodyText}>Welcome to your user dashboard.</p>
-        <button className={primaryBtn + ' mt-6'} onClick={readAllArticles} disabled={loading}>
-          {loading ? 'Loading...' : 'Read all articles'}
+        <button className={primaryBtn + ' mt-6'} onClick={toggleShowArticles} disabled={loading}>
+          {loading ? 'Loading...' : (showArticles ? 'Hide articles' : 'Read all articles')}
         </button>
         {fetchError && <p className='text-red-600 mt-2 text-sm'>{fetchError}</p>}
       </div>

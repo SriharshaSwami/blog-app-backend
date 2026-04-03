@@ -9,7 +9,6 @@ import { toast } from 'react-hot-toast'
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function Login() {
-  const [loginAttempted, setLoginAttempted] = useState(false)
   const navigate = useNavigate()
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
@@ -25,7 +24,6 @@ function Login() {
   const error = useAuth(state => state.error)
 
   const onLogin = async (userLoginObj) => {
-    setLoginAttempted(true)
     console.log('login user:', userLoginObj)
     await login(userLoginObj)
     setTimeout(() => {
@@ -38,9 +36,9 @@ function Login() {
     }, 1 * 100)
   }
 
-  // Redirect after successful login, only if login was attempted from this page
+  // Redirect after successful login or if already authenticated
   React.useEffect(() => {
-    if (loginAttempted && isAuthenticated && currentUser && currentUser.role) {
+    if (isAuthenticated && currentUser && currentUser.role) {
       if (currentUser.role === "USER") {
         navigate('/userdashboard')
       } else if (currentUser.role === "AUTHOR") {
@@ -49,7 +47,7 @@ function Login() {
         navigate('/admindashboard')
       }
     }
-  }, [loginAttempted, isAuthenticated, currentUser, navigate])
+  }, [isAuthenticated, currentUser, navigate])
 
   return (
     <div className={formCard}>

@@ -81,7 +81,7 @@ userRoute.put('/articles', verifyToken('USER'), checkUser, async (req, res) => {
 //Read single article by ID
 userRoute.get('/article/:id', verifyToken("USER", "AUTHOR", "ADMIN"), async (req, res) => {
     const { id } = req.params;
-    const article = await ArticleModel.findById(id).populate("author", "firstName lastName email profileImageUrl");
+    const article = await ArticleModel.findById(id).populate("author", "firstName lastName email profileImageUrl").populate("comments.user", "firstName lastName email profileImageUrl");
 
     if (!article) {
         return res.status(404).json({ error: "Article not found" });

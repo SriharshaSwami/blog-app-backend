@@ -4,7 +4,15 @@ import { cardClass, pageTitleClass, bodyText, secondaryBtn } from '../styles/com
 import AuthorArticles from './AuthorArticles'
 
 function AuthorProfile() {
-  const [showArticles, setShowArticles] = useState(false)
+  const [showArticles, setShowArticles] = useState(() => {
+    return sessionStorage.getItem("authorShowArticles") === "true"
+  })
+
+  const toggleShowArticles = () => {
+    const newVal = !showArticles
+    setShowArticles(newVal)
+    sessionStorage.setItem("authorShowArticles", newVal)
+  }
 
   return (
     <div className='max-w-6xl mx-auto'>
@@ -15,7 +23,7 @@ function AuthorProfile() {
         <div className="flex justify-center gap-6">
           <button 
             className="bg-[#0066cc] text-white font-semibold px-8 py-2.5 rounded-full hover:bg-[#004499] transition-colors"
-            onClick={() => setShowArticles(!showArticles)}
+            onClick={toggleShowArticles}
           >
             {showArticles ? 'Hide My Articles' : 'My Articles'}
           </button>

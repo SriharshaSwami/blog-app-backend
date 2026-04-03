@@ -13,14 +13,16 @@ export const verifyToken = (...allowedRoles) => {
 
             // Verify and decode token
             const decodedToken = jwt.verify(token, process.env.JWT_SECRET)
+            
+            console.log(`Debug Auth: URL=${req.originalUrl} User=${decodedToken.email} Role=${decodedToken.role} Allowed=${allowedRoles}`)
 
             if (!allowedRoles.includes(decodedToken.role)) {
+                console.log(`Debug Auth: Access Forbidden for ${decodedToken.role}`)
                 return res.status(403).json({ message: "Forbidden, You don't have permission" })
             }
 
             // Attach user info to req for use in routes
             req.user = decodedToken
-            console.log(req.user)
             next()
         } catch (err) {
             // jwt.verify throws if token is invalid

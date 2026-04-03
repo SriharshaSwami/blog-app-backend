@@ -86,7 +86,7 @@ authorRoute.get(['/articles', '/articles/:authorId', '/article/:authorId'], veri
     console.log("AuthorAPI - All Author IDs in DB:", allAuthors.map(a => String(a.author)))
 
     //read articles by this author (all articles)
-    let articles = await ArticleModel.find({author: authorId}).populate("author", "firstName lastName email profileImageUrl")
+    let articles = await ArticleModel.find({author: authorId}).populate("author", "firstName lastName email profileImageUrl").populate("comments.user", "firstName lastName email profileImageUrl")
     console.log("AuthorAPI - Articles found for this author:", articles.length)
 
     //send res
