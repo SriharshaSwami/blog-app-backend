@@ -6,9 +6,11 @@ config()
 
 //register user function
 export const register = async (userObj) =>{
-
+    if (userObj.email) {
+        userObj.email = userObj.email.toLowerCase();
+    }
     // Return a client error for duplicate email instead of bubbling as a server error.
-    const existingUser = await UserTypeModel.findOne({ email: userObj.email })
+    const existingUser = await UserTypeModel.findOne({ email: { $regex: new RegExp(`^${userObj.email}$`, 'i') } })
     if (existingUser) {
         const err = Error("Email already registered")
         err.status = 409
@@ -39,8 +41,8 @@ export const register = async (userObj) =>{
 
 //authenticate user function
 export const authenticate = async ({email, password}) =>{
-    //check user with email and role 
-    const user = await UserTypeModel.findOne({email})
+    //check user with email and role (case-insensitive)
+    const user = await UserTypeModel.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } })
     if(!user){
         const err = Error("Invalid email")
         err.status = 401
@@ -63,7 +65,7 @@ export const authenticate = async ({email, password}) =>{
     }
 
     //generate token
-    const token = jwt.sign({userId: user._id, role: user.role, email: user.email},
+    const token = jwt.sign({userId: user._id, role: user.role, email: user.email, profileImageUrl: user.profileImageUrl},
          process.env.JWT_SECRET,
         {expiresIn: '1h'})
     const userObj = user.toObject()

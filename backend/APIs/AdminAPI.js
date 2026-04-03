@@ -9,12 +9,13 @@ export const adminRoute = exp.Router()
 //Read all articles(optional)
 
 //Block user route
-adminRoute.put('/block',verifyToken, async (req, res) =>{
+adminRoute.put('/block',verifyToken('ADMIN'), async (req, res) =>{
     //get userObj from req
     let userObj = req.body
     
     //find user in Db
-    let userInDb = await UserTypeModel.find({email: userObj.userEmail})
+    const userEmail = userObj.userEmail?.toLowerCase()
+    let userInDb = await UserTypeModel.findOne({email: userEmail})
     if(!userInDb){
         return res.status(404).json({message: "User not found"})
     }
@@ -25,12 +26,13 @@ adminRoute.put('/block',verifyToken, async (req, res) =>{
 })
 
 //Unblock user route
-adminRoute.put('/unblock',verifyToken, async (req, res) =>{
+adminRoute.put('/unblock',verifyToken('ADMIN'), async (req, res) =>{
     //get userObj from req
     let userObj = req.body
     
     //find user in Db
-    let userInDb = await UserTypeModel.find({email: userObj.userEmail})
+    const userEmail = userObj.userEmail?.toLowerCase()
+    let userInDb = await UserTypeModel.findOne({email: userEmail})
     if(!userInDb){
         return res.status(404).json({message: "User not found"})
     }

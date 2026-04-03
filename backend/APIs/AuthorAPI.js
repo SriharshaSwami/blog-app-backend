@@ -4,21 +4,48 @@ import { UserTypeModel } from '../models/UserModel.js'
 import { ArticleModel } from '../models/ArticleModel.js'
 import { checkAuthor } from '../Middlewares/checkAuthor.js'
 import { verifyToken } from '../Middlewares/verifyToken.js'
+import { upload } from "../config/multer.js"
+import { uploadToCloudinary } from "../config/cloudinaryUpload.js"
+import cloudinary from "../config/cloudinary.js"
 //create mini server
 export const authorRoute = exp.Router()
 
 //Register author(public)
-authorRoute.post('/users', async (req, res) =>{
+authorRoute.post(
+  "/users",
+  upload.single("profilePic"),
+  async (req, res, next) => {
+    let cloudinaryResult;
 
-    //get userObj from body
-    let userObj = req.body
+    try {
+      let userObj = req.body;
 
-    //call register
-    const newUserObj = await register({...userObj, role: "AUTHOR"})
-    
-    //send res
-    res.status(201).json({message: "Author created", payload: newUserObj})
-})
+      //  Step 1: upload image to cloudinary from memoryStorage (if exists)
+      if (req.file) {
+        cloudinaryResult = await uploadToCloudinary(req.file.buffer);
+      }
+
+      // Step 2: call existing register()
+      const newUserObj = await register({
+        ...userObj,
+        role: "AUTHOR",
+        profileImageUrl: cloudinaryResult?.secure_url,
+      });
+
+      res.status(201).json({
+        message: "Author created",
+        payload: newUserObj,
+      });
+    } catch (err) {
+      // Step 3: rollback
+      if (cloudinaryResult?.public_id) {
+        await cloudinary.uploader.destroy(cloudinaryResult.public_id);
+      }
+
+      next(err); // send to your error middleware
+    }
+  }
+);
 
 // //Create article(protected)
 authorRoute.post('/articles', verifyToken("AUTHOR"), checkAuthor, async (req, res) => {
@@ -44,15 +71,23 @@ authorRoute.post('/articles', verifyToken("AUTHOR"), checkAuthor, async (req, re
 })
 
 //Read articles of their own(protected)
-authorRoute.get('/articles/:authorId', verifyToken("AUTHOR"), checkAuthor, async(req, res) => {
-    //get author id
-    let authorId = req.params.authorId
+authorRoute.get(['/articles', '/articles/:authorId', '/article/:authorId'], verifyToken("AUTHOR"), async(req, res) => {
+    // If authorId is in params, use it, otherwise use the token's userId
+    let authorId = req.params.authorId || req.user.userId;
 
-    //already middleware checks author
-    let author = await UserTypeModel.findById(authorId)
+    // Ensure they are requesting their own articles
+    if (authorId !== req.user.userId) {
+        return res.status(403).json({ message: "Forbidden. You can only view your own articles." });
+    }
 
-    //read articles by this author
-    let articles = await ArticleModel.find({author: author._id, isArticleActive: true}).populate("author", "firstName email")
+    // Diagnostic: Log all author IDs in DB
+    const allAuthors = await ArticleModel.find({}, 'author').lean()
+    console.log("AuthorAPI - Requested authorId:", authorId)
+    console.log("AuthorAPI - All Author IDs in DB:", allAuthors.map(a => String(a.author)))
+
+    //read articles by this author (all articles)
+    let articles = await ArticleModel.find({author: authorId}).populate("author", "firstName lastName email profileImageUrl")
+    console.log("AuthorAPI - Articles found for this author:", articles.length)
 
     //send res
     res.status(200).json({message: "Articles", payload: articles})

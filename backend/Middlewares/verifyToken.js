@@ -1,4 +1,6 @@
 import jwt from "jsonwebtoken"
+import { config } from 'dotenv'
+config()
 
 export const verifyToken = (...allowedRoles) => {
     return async (req, res, next) => {
@@ -18,6 +20,7 @@ export const verifyToken = (...allowedRoles) => {
 
             // Attach user info to req for use in routes
             req.user = decodedToken
+            console.log(req.user)
             next()
         } catch (err) {
             // jwt.verify throws if token is invalid
