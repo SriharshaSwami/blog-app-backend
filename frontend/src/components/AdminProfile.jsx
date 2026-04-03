@@ -47,30 +47,30 @@ function AdminProfile() {
   const justAuthors = users.filter(u => u.role === 'AUTHOR')
 
   return (
-    <div className='max-w-6xl mx-auto'>
-      <div className={cardClass + ' text-center mb-8'}>
-        <h2 className={pageTitleClass}>Admin Profile</h2>
-        <p className={bodyText}>Welcome to your admin dashboard.</p>
+    <div className={pageWrapper}>
+      <div className={cardClass + ' text-center mb-16 py-12 border border-[#e8e8ed]'}>
+        <h2 className={pageTitleClass}>System Control</h2>
+        <p className={bodyText + " mb-10 text-lg max-w-xl mx-auto"}>Monitor platform health, manage user permissions, and ensure community standards.</p>
         
-        <div className="flex justify-center gap-4 mt-8">
+        <div className="flex justify-center gap-4">
           <button 
-            className={`px-8 py-2.5 rounded-full font-semibold transition-colors ${activeTab === 'users' ? 'bg-[#0066cc] text-white' : 'bg-[#e8e8ed] text-[#1d1d1f] hover:bg-[#d2d2d7]'}`}
+            className={`px-8 py-3 rounded-full font-semibold transition-all duration-300 transform ${activeTab === 'users' ? 'bg-[#0066cc] text-white shadow-md scale-105' : 'bg-white border border-[#d2d2d7] text-[#1d1d1f] hover:bg-[#f5f5f7]'}`}
             onClick={() => setActiveTab('users')}
           >
-            Manage Users ({justUsers.length})
+            Users ({justUsers.length})
           </button>
           <button 
-            className={`px-8 py-2.5 rounded-full font-semibold transition-colors ${activeTab === 'authors' ? 'bg-[#0066cc] text-white' : 'bg-[#e8e8ed] text-[#1d1d1f] hover:bg-[#d2d2d7]'}`}
+            className={`px-8 py-3 rounded-full font-semibold transition-all duration-300 transform ${activeTab === 'authors' ? 'bg-[#0066cc] text-white shadow-md scale-105' : 'bg-white border border-[#d2d2d7] text-[#1d1d1f] hover:bg-[#f5f5f7]'}`}
             onClick={() => setActiveTab('authors')}
           >
-            Manage Authors ({justAuthors.length})
+            Authors ({justAuthors.length})
           </button>
         </div>
       </div>
 
-      <div className="mt-8">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
         {loading ? (
-          <p className="text-center py-10 text-slate-500 animate-pulse">Loading accounts...</p>
+          <p className={loadingClass}>Fetching system data...</p>
         ) : (
           activeTab === 'users' ? (
             <UsersList users={justUsers} onToggleBlock={handleToggleBlock} />

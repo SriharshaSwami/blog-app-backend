@@ -50,44 +50,48 @@ function Login() {
   }, [isAuthenticated, currentUser, navigate])
 
   return (
-    <div className={formCard}>
-      <h2 className={formTitle}>Login</h2>
+    <div className="flex items-center justify-center min-h-[70vh]">
+      <div className={formCard + " shadow-sm border border-[#e8e8ed]"}>
+        <h2 className={formTitle}>Welcome back</h2>
 
-      {/* Display error from authStore */}
-      {error && (
-        <p className={errorClass + ' mb-4'}>
-          {error.response?.data?.error || error.response?.data?.message || error.message || 'Login failed'}
-        </p>
-      )}
+        {/* Display error from authStore */}
+        {error && (
+          <p className={errorClass + ' mb-6'}>
+            {error.response?.data?.error || error.response?.data?.message || error.message || 'Login failed'}
+          </p>
+        )}
 
-      <form onSubmit={handleSubmit(onLogin)}>
-        <div className={formGroup}>
-          <input
-            className={inputClass}
-            type='email'
-            placeholder='Email'
-            {...register('email', {
-              required: 'Email required',
-              pattern: { value: emailRegex, message: 'Invalid email format' },
-            })}
-          />
-          {errors.email?.message && <p className={errorClass + ' mt-1'}>{errors.email.message}</p>}
-        </div>
+        <form onSubmit={handleSubmit(onLogin)} className="space-y-4">
+          <div className={formGroup}>
+            <label className={labelClass}>EMAIL ADDRESS</label>
+            <input
+              className={inputClass}
+              type='email'
+              placeholder='name@example.com'
+              {...register('email', {
+                required: 'Email required',
+                pattern: { value: emailRegex, message: 'Invalid email format' },
+              })}
+            />
+            {errors.email?.message && <p className={errorClass + ' mt-2 animate-in fade-in'}>{errors.email.message}</p>}
+          </div>
 
-        <div className={formGroup}>
-          <input
-            className={inputClass}
-            type='password'
-            placeholder='Password'
-            {...register('password', { required: 'password required' })}
-          />
-          {errors.password?.message && <p className={errorClass + ' mt-1'}>{errors.password.message}</p>}
-        </div>
+          <div className={formGroup}>
+            <label className={labelClass}>PASSWORD</label>
+            <input
+              className={inputClass}
+              type='password'
+              placeholder='Enter password'
+              {...register('password', { required: 'password required' })}
+            />
+            {errors.password?.message && <p className={errorClass + ' mt-2 animate-in fade-in'}>{errors.password.message}</p>}
+          </div>
 
-        <button className={submitBtn} type='submit'>
-          Login
-        </button>
-      </form>
+          <button className={submitBtn + " py-3 mt-4"} type='submit'>
+            Sign In
+          </button>
+        </form>
+      </div>
     </div>
   )
 }

@@ -41,44 +41,59 @@ function UserProfile() {
   }
 
   return (
-    <div className='max-w-6xl mx-auto'>
-      <div className={cardClass + ' text-center mb-8'}>
-        <h2 className={pageTitleClass}>User Profile</h2>
-        {currentUser && (currentUser.profileImageUrl || currentUser.profileImage) && (
-          <img
-            className="mx-auto rounded-full w-24 h-24 object-cover border border-[#d2d2d7] mb-4"
-            src={currentUser.profileImageUrl || currentUser.profileImage}
-            alt="Profile"
-          />
-        )}
-        <p className={bodyText}>Welcome to your user dashboard.</p>
-        <button className={primaryBtn + ' mt-6'} onClick={toggleShowArticles} disabled={loading}>
-          {loading ? 'Loading...' : (showArticles ? 'Hide articles' : 'Read all articles')}
-        </button>
-        {fetchError && <p className='text-red-600 mt-2 text-sm'>{fetchError}</p>}
+    <div className={pageWrapper}>
+      <div className={cardClass + ' text-center mb-16 py-12 border border-[#e8e8ed]'}>
+        <h2 className={pageTitleClass}>Hello, {currentUser?.firstName || 'User'}</h2>
+        
+        <div className="relative w-28 h-28 mx-auto my-8">
+            {currentUser && (currentUser.profileImageUrl || currentUser.profileImage) ? (
+            <img
+                className="rounded-full w-full h-full object-cover border-4 border-white shadow-sm"
+                src={currentUser.profileImageUrl || currentUser.profileImage}
+                alt="Profile"
+            />
+            ) : (
+                <div className="w-full h-full rounded-full bg-[#0066cc] flex items-center justify-center text-white text-3xl font-bold">
+                    {currentUser?.firstName?.charAt(0)}
+                </div>
+            )}
+        </div>
+
+        <p className={bodyText + " mb-10 text-lg"}>Discover new stories and manage your saved insights.</p>
+        
+        <div className="flex justify-center gap-4">
+            <button className={primaryBtn + ' !px-10 !py-3 !text-base'} onClick={toggleShowArticles} disabled={loading}>
+            {loading ? 'Crunching data...' : (showArticles ? 'Hide Insights' : 'Explore Articles')}
+            </button>
+        </div>
+
+        {fetchError && <p className={errorClass + ' mt-6'}>{fetchError}</p>}
       </div>
 
       {showArticles && (
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8 pb-10'>
-          {articles.length === 0 && <p className='col-span-full text-center text-gray-500 py-10'>No articles found.</p>}
-          {articles.map(article => (
-            <div key={article._id || article.id} className={cardClass + ' flex flex-col'}>
-              <h3 className='text-xl font-semibold mb-3 tracking-tight'>{article.title}</h3>
-              <p className={bodyText + ' mb-4 flex-grow'}>
-                {article.content?.slice(0, 150) || ''}
-                {article.content && article.content.length > 150 ? '...' : ''}
-              </p>
-              
-              <div className="flex justify-between items-center mt-auto border-t border-[#d2d2d7]/30 pt-4">
-                <div className='text-[10px] text-gray-400 uppercase tracking-widest'>
-                  {article.createdAt ? new Date(article.createdAt).toLocaleDateString() : ''}
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+           <h3 className={headingClass + " mb-8"}>Latest Publications</h3>
+           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20'>
+            {articles.length === 0 && <p className={emptyStateClass}>No articles found.</p>}
+            {articles.map(article => (
+                <div key={article._id || article.id} className={cardClass + ' flex flex-col border border-transparent hover:border-[#d2d2d7] !p-6'}>
+                <span className={tagClass + " mb-3"}>{article.category}</span>
+                <h3 className={articleTitle + ' mb-3 line-clamp-2'}>{article.title}</h3>
+                <p className={articleExcerpt + ' mb-6 flex-grow line-clamp-3'}>
+                    {article.content}
+                </p>
+                
+                <div className="flex justify-between items-center mt-auto pt-4 border-t border-[#e8e8ed]">
+                    <div className={timestampClass}>
+                    {article.createdAt ? new Date(article.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
+                    </div>
+                    <Link to={`/article/${article._id}`} state={article} className={ghostBtn}>
+                    Read more &rarr;
+                    </Link>
                 </div>
-                <Link to={`/article/${article._id}`} state={article} className={primaryBtn + " !px-4 !py-1 !text-xs"}>
-                  Read More
-                </Link>
-              </div>
+                </div>
+            ))}
             </div>
-          ))}
         </div>
       )}
     </div>

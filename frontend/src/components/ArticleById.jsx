@@ -126,69 +126,80 @@ function ArticleByID() {
   if (!article) return null;
 
   return (
-    <div className={articlePageWrapper}>
-      <button onClick={() => navigate(-1)} className="mb-8 text-[#0066cc] hover:text-[#004499] text-sm font-medium flex items-center gap-1.5 transition-all hover:-translate-x-1">
-        ← Back
+    <div className={articlePageWrapper + " bg-white"}>
+      <button onClick={() => navigate(-1)} className="mb-12 text-[#0066cc] hover:text-[#004499] text-[13px] font-medium flex items-center gap-1.5 transition-all hover:-translate-x-1 uppercase tracking-widest">
+        &larr; Back to insights
       </button>
 
       <div className={articleHeader}>
         <span className={articleCategory}>{article.category}</span>
-        <h1 className={`${articleMainTitle}`}>{article.title}</h1>
+        <h1 className={articleMainTitle}>{article.title}</h1>
 
         <div className={articleAuthorRow}>
-          <div className={authorInfo}>✍️ {article.author?.firstName || "Author"} {article.author?.lastName || ""}</div>
-          <div>{formatDate(article.createdAt)}</div>
+          <div className={authorInfo}>
+            <div className="w-8 h-8 rounded-full bg-[#f5f5f7] border border-[#e8e8ed] flex items-center justify-center text-[10px] font-bold text-[#1d1d1f]">
+                {article.author?.firstName?.charAt(0)}
+            </div>
+            <span>By {article.author?.firstName || "Author"} {article.author?.lastName || ""}</span>
+          </div>
+          <div className={timestampClass}>{formatDate(article.createdAt)}</div>
         </div>
       </div>
 
       <div className={articleContent}>{article.content}</div>
 
       {user?.role === "AUTHOR" && String(article.author?._id || article.author) === String(user._id) && (
-        <div className={articleActions}>
+        <div className={articleActions + " border-y border-[#e8e8ed] py-10"}>
           <button className={editBtn} onClick={() => editArticle(article)}>
-            Edit
+            Modify Story
           </button>
           <button className={deleteBtn} onClick={toggleArticleStatus}>
-            {article.isArticleActive ? "Delete" : "Restore"}
+            {article.isArticleActive ? "Archive Publication" : "Restore Publication"}
           </button>
         </div>
       )}
 
-  {["USER", "AUTHOR", "ADMIN"].includes(user?.role) && (
-        <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <h3 className="text-lg font-bold text-slate-900">Comments</h3>
+      {["USER", "AUTHOR", "ADMIN"].includes(user?.role) && (
+        <div className="mt-16 bg-[#f5f5f7] rounded-3xl p-10 border border-[#e8e8ed]">
+          <h3 className={headingClass + " mb-8"}>Community Insight</h3>
 
           {Array.isArray(article.comments) && article.comments.length > 0 ? (
-            <div className="mt-4 space-y-3">
+            <div className="space-y-6">
               {article.comments.map((item, index) => (
-                <div key={item._id || index} className="rounded-lg border border-slate-200 bg-white p-3">
-                  <p className="text-sm text-slate-800">{item.comment}</p>
-                  <div className="mt-1 text-xs text-slate-500">
-                    <p>Username: {item.user?.firstName || "User"} {item.user?.lastName || ""}</p>
-                    <p>Email: {item.user?.email || "Not available"}</p>
+                <div key={item._id || index} className="rounded-2xl bg-white border border-[#e8e8ed] p-6 shadow-sm">
+                  <p className="text-[#1d1d1f] leading-relaxed mb-4 text-[0.95rem]">{item.comment}</p>
+                  <div className="flex items-center gap-3 pt-4 border-t border-[#f5f5f7]">
+                    <div className="w-6 h-6 rounded-full bg-[#0066cc] flex items-center justify-center text-[8px] font-bold text-white uppercase">
+                        {item.user?.firstName?.charAt(0)}
+                    </div>
+                    <div className="text-[11px] text-[#6e6e73]">
+                        <span className="font-bold text-[#1d1d1f]">{item.user?.firstName} {item.user?.lastName}</span>
+                        <span className="mx-2 opacity-50">•</span>
+                        <span>{item.user?.email}</span>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="mt-3 text-sm text-slate-500">No comments yet.</p>
+            <p className={emptyStateClass + " !py-4"}>No insights shared yet. Be the first.</p>
           )}
 
           {user?.role === "USER" && (
-            <form onSubmit={addComment} className="mt-4 space-y-3">
+            <form onSubmit={addComment} className="mt-12 space-y-4">
               <textarea
-                rows={3}
+                rows={4}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Add your comment"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-cyan-500"
+                placeholder="Share your perspective..."
+                className={inputClass + " !rounded-2xl resize-none"}
               />
               <button
                 type="submit"
                 disabled={commentLoading}
-                className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className={primaryBtn + " !px-8 !py-3"}
               >
-                {commentLoading ? "Posting..." : "Add Comment"}
+                {commentLoading ? "Publishing..." : "Submit Comment"}
               </button>
             </form>
           )}
@@ -196,13 +207,13 @@ function ArticleByID() {
       )}
 
       <div className={articleFooter}>
-        <p>Published: {formatDate(article.createdAt)}</p>
+        <p>Published on {formatDate(article.createdAt)}</p>
         {article.updatedAt !== article.createdAt && (
-            <p className="mt-1">Last updated: {formatDate(article.updatedAt)}</p>
+            <p className="mt-2 italic">Last revised on {formatDate(article.updatedAt)}</p>
         )}
       </div>
     </div>
-  );
+  )
 }
 
 export default ArticleByID;
